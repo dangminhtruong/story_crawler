@@ -15,12 +15,13 @@ import (
 	"time"
 	"crypto/md5"
 	"encoding/hex"
+	"flag"
 )
 
-func visitLink(urlSet processXml.Urlset, db *sql.DB) {
+func visitLink(urlSet processXml.Urlset, db *sql.DB, cate string, id int) {
 	for i := 0; i < len(urlSet.Urls); i++ {
 
-		var urlCheck = regexp.MustCompile("truyen-ngu-ngon.*[^0-9]$")
+		var urlCheck = regexp.MustCompile(cate + ".*[^0-9]$")
 		var isVideo = regexp.MustCompile("video")
 		var isTag = regexp.MustCompile("tag")
 		if urlCheck.MatchString(urlSet.Urls[i].Loc) && ! isVideo.MatchString(urlSet.Urls[i].Loc) && !isTag.MatchString(urlSet.Urls[i].Loc){
@@ -31,7 +32,7 @@ func visitLink(urlSet processXml.Urlset, db *sql.DB) {
 				avataUrl := e.ChildAttr("header > center > img", "src")
 				md5HashInBytes := md5.Sum([]byte(title))
 				avata := hex.EncodeToString(md5HashInBytes[:])
-				img, _ := os.Create("img/" + avata + ".jpg")
+				img, _ := os.Create("/home/truongdang/Documents/project/PHP/truyencotich.top/storage/app/public/img/" + avata + ".jpg")
 				defer img.Close()
 				resp, _ := http.Get(avataUrl)
     			defer resp.Body.Close()
@@ -67,7 +68,7 @@ func visitLink(urlSet processXml.Urlset, db *sql.DB) {
 					fmt.Println("Insert failed")
 				}
 				
-				insPost.Exec(title, short_descript, "img/" + avata + ".jpg", content, slugName, 0, 1, share_link, title, short_descript, meta_keyword, 3, time.Now()) 
+				insPost.Exec(title, short_descript, "img/" + avata + ".jpg", content, slugName, 0, 1, share_link, title, short_descript, meta_keyword, id, time.Now()) 
 				fmt.Printf("Inserted: %q\n", title)
 			})
 
@@ -83,11 +84,24 @@ func visitLink(urlSet processXml.Urlset, db *sql.DB) {
 }
 
 func main() {
+	var cate string
+	var id int
+
+	flag.StringVar(&cate, "cate", "", "category")
+	flag.StringVar(&cate, "path", "", "img store path example: /var/www/truyencotich.top/storage/app/public/img/")
+	flag.IntVar(&id, "id", 0, "category id")
+	flag.Parse()
+
 	db := database.DBConn()
 	defer db.Close()
 
-	links := processXml.ReadSiteMap("sitemapone.xml")
-	visitLink(links, db)
+	links := processXml.ReadSiteMap("sitemap.xml")
+	if cate != "cate" && id > 0{
+		visitLink(links, db, cate, id)
+	}else{
+		fmt.Println("Not enough arguments !")
+	}
+	
 }
 
 
