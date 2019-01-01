@@ -18,7 +18,7 @@ import (
 	"flag"
 )
 
-func visitLink(urlSet processXml.Urlset, db *sql.DB, cate string, id int) {
+func visitLink(urlSet processXml.Urlset, db *sql.DB, cate string, id int, path string) {
 	for i := 0; i < len(urlSet.Urls); i++ {
 
 		var urlCheck = regexp.MustCompile(cate + ".*[^0-9]$")
@@ -32,7 +32,7 @@ func visitLink(urlSet processXml.Urlset, db *sql.DB, cate string, id int) {
 				avataUrl := e.ChildAttr("header > center > img", "src")
 				md5HashInBytes := md5.Sum([]byte(title))
 				avata := hex.EncodeToString(md5HashInBytes[:])
-				img, _ := os.Create("/home/truongdang/Documents/project/PHP/truyencotich.top/storage/app/public/img/" + avata + ".jpg")
+				img, _ := os.Create(path + avata + ".jpg")
 				defer img.Close()
 				resp, _ := http.Get(avataUrl)
     			defer resp.Body.Close()
@@ -85,10 +85,11 @@ func visitLink(urlSet processXml.Urlset, db *sql.DB, cate string, id int) {
 
 func main() {
 	var cate string
+	var path string
 	var id int
 
 	flag.StringVar(&cate, "cate", "", "category")
-	flag.StringVar(&cate, "path", "", "img store path example: /var/www/truyencotich.top/storage/app/public/img/")
+	flag.StringVar(&path, "path", "", "img store path example: /var/www/truyencotich.top/storage/app/public/img/")
 	flag.IntVar(&id, "id", 0, "category id")
 	flag.Parse()
 
@@ -97,7 +98,7 @@ func main() {
 
 	links := processXml.ReadSiteMap("sitemap.xml")
 	if cate != "cate" && id > 0{
-		visitLink(links, db, cate, id)
+		visitLink(links, db, cate, id, path)
 	}else{
 		fmt.Println("Not enough arguments !")
 	}
