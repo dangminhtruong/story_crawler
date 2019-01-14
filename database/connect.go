@@ -7,9 +7,9 @@ import (
 
 func DBConn() (db *sql.DB) {
     dbDriver := "mysql"
-    dbUser := "admin"
-    dbPass := "789852t@"
-    dbName := "truyencotich"
+    dbUser := "root"
+    dbPass := "789852"
+    dbName := "dkn"
     db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
     if err != nil {
         panic(err.Error())
